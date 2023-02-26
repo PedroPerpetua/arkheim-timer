@@ -14,7 +14,7 @@ function useCurrentTime(updateRate = 500) {
       updateRate,
     );
     return () => clearInterval(interval);
-  }, []);
+  }, [updateRate]);
 
   return currentTime;
 }

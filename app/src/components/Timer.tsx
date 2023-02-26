@@ -1,12 +1,8 @@
 import {
-  Card, CardContent, CircularProgress, Typography, Box, Grid,
+  Card, CardContent, CircularProgress, Typography, Box, Grid, IconButton,
 } from '@mui/material';
-import { Timer as TimerType } from '../hooks/useTimers';
-
-type CountdownSpinnerProps = {
-  value: number
-  remaining: number,
-};
+import DeleteIcon from '@mui/icons-material/Delete';
+import { Timer as TimerType } from '../hooks/useTimersManager';
 
 function formatSeconds(seconds: number) {
   function pad(num: number, size: number) {
@@ -26,6 +22,11 @@ function formatSeconds(seconds: number) {
   const s = sec - 60*60*h - 60*m;
   return `${h}:${pad(m, 2)}:${pad(s, 2)}`;
 }
+
+type CountdownSpinnerProps = {
+  value: number
+  remaining: number,
+};
 
 function CountdownSpinner({ remaining, value }: CountdownSpinnerProps) {
   return (
@@ -54,33 +55,44 @@ function CountdownSpinner({ remaining, value }: CountdownSpinnerProps) {
 type TimerProps = {
   timer: TimerType,
   currentTime: number,
+  handleDelete: (id: string) => void,
 };
 
-function Timer({ timer, currentTime }: TimerProps) {
-
-  const total = timer.when - timer.started;
-  const remaining = (timer.when - currentTime) / 1000;
-  const progress = currentTime - timer.started;
-  const percentage = (progress / total) * 100;
-
-  console.log("TOTAL", total)
-  console.log("PROGRESS", progress)
-  console.log("PERCENTAGE", percentage)
+function Timer({ timer, currentTime, handleDelete }: TimerProps) {
+  const remaining = timer.remainingSeconds(currentTime);
+  const percentage = timer.percentageDone(currentTime);
 
   return (
     <Card>
       <CardContent>
-        <Grid container>
+        <Grid container alignItems="center">
+          <Grid item xs={11}>
+            <Typography
+              sx={{ fontSize: 12 }}
+              color="text.secondary"
+              gutterBottom
+            >
+              {timer.id}
+            </Typography>
+          </Grid>
+          <Grid item xs={1}>
+            <IconButton
+              onClick={() => handleDelete(timer.id)}
+              size="small" color="error"
+            >
+              <DeleteIcon />
+            </IconButton>
+          </Grid>
           <Grid item xs={8}>
-            <Typography variant="h5" component="div">
+            <Typography variant="h5" component="div" noWrap>
               {timer.name}
             </Typography>
           </Grid>
           <Grid item xs={4}>
             {
-              remaining > 0
-              ? <CountdownSpinner remaining={remaining} value={percentage} />
-              : <Typography>Finished!</Typography>
+              remaining <= 0
+              ? <Typography>Finished!</Typography>
+              : <CountdownSpinner remaining={remaining} value={percentage} />
             }
           </Grid>
         </Grid>

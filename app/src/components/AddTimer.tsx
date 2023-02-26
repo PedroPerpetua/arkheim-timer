@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { TextField, Grid, Card, CardContent, CardActions, Button } from '@mui/material';
+import {
+  TextField, Grid, Card, CardContent, CardActions, Button, Typography
+} from '@mui/material';
 
 type AddTimerProps = {
   handleFinish: (name: string, interval: number) => void,
@@ -21,9 +23,11 @@ function AddTimer({ handleFinish }: AddTimerProps) {
 
   return (
     <div>
-      <p>Add Timer</p>
       <Card>
         <CardContent>
+          <Typography variant="h5">
+            Add Timer
+          </Typography>
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <TextField
