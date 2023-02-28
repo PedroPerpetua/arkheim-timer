@@ -14,17 +14,25 @@ function Panel() {
     timersManager.deleteTimer(id);
   }
 
+  const handleDismiss = (id: string) => {
+    timersManager.dismissTimer(id);
+  }
+
   return (
     <div>
       <button onClick={timersManager.clearTimers}>Clear</button>
       <p>Current Time: {timersManager.currentTime}</p>
       <AddTimer handleFinish={handleAddTimer}/>
-      {timersManager.list.map((timer, i) =>
-        <Timer
-          timer={timer} key={i}
-          currentTime={timersManager.currentTime}
-          handleDelete={handleDelete}
-        />
+      {[...timersManager.timers.entries()]
+        .sort(([, t1], [, t2]) => t1.end - t2.end)
+        .map(([id, timer], i) =>
+          <Timer
+            timerId={id} key={i}
+            timer={timer}
+            currentTime={timersManager.currentTime}
+            onDelete={() => handleDelete(id)}
+            onDismiss={() => handleDismiss(id)}
+          />
       )}
     </div>
   );

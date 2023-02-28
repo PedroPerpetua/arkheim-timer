@@ -1,7 +1,8 @@
 import {
-  Card, CardContent, CircularProgress, Typography, Box, Grid, IconButton,
+  Card, CardContent, CircularProgress, Typography, Box, Grid, IconButton, Tooltip,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import SnoozeIcon from '@mui/icons-material/Snooze';
 import { Timer as TimerType } from '../hooks/useTimersManager';
 
 function formatSeconds(seconds: number) {
@@ -53,35 +54,51 @@ function CountdownSpinner({ remaining, value }: CountdownSpinnerProps) {
 }
 
 type TimerProps = {
+  timerId: string
   timer: TimerType,
   currentTime: number,
-  handleDelete: (id: string) => void,
+  onDelete: () => void,
+  onDismiss: () => void,
 };
 
-function Timer({ timer, currentTime, handleDelete }: TimerProps) {
+function Timer({ timerId, timer, currentTime, onDelete, onDismiss }: TimerProps) {
   const remaining = timer.remainingSeconds(currentTime);
   const percentage = timer.percentageDone(currentTime);
+
+  const finished = remaining <= 0;
 
   return (
     <Card>
       <CardContent>
         <Grid container alignItems="center">
-          <Grid item xs={11}>
+          <Grid item xs={10}>
             <Typography
               sx={{ fontSize: 12 }}
               color="text.secondary"
               gutterBottom
             >
-              {timer.id}
+              {timerId}
             </Typography>
           </Grid>
           <Grid item xs={1}>
-            <IconButton
-              onClick={() => handleDelete(timer.id)}
-              size="small" color="error"
-            >
-              <DeleteIcon />
-            </IconButton>
+            <Tooltip title="Dismiss">
+              <IconButton
+                onClick={onDismiss}
+                size="small"
+              >
+                <SnoozeIcon />
+              </IconButton>
+            </Tooltip>
+          </Grid>
+          <Grid item xs={1}>
+            <Tooltip title="Delete">
+              <IconButton
+                onClick={onDelete}
+                size="small" color="error"
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Tooltip>
           </Grid>
           <Grid item xs={8}>
             <Typography variant="h5" component="div" noWrap>
@@ -90,7 +107,7 @@ function Timer({ timer, currentTime, handleDelete }: TimerProps) {
           </Grid>
           <Grid item xs={4}>
             {
-              remaining <= 0
+              finished
               ? <Typography>Finished!</Typography>
               : <CountdownSpinner remaining={remaining} value={percentage} />
             }
