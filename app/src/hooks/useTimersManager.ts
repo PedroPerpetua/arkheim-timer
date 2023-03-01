@@ -1,22 +1,29 @@
 import { createChromeStorageStateHookSync } from 'use-chrome-storage';
 import useCurrentTime from './useCurrentTime';
 import { v4 as uuid } from 'uuid';
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 
 export class Timer {
+  id: string;
   name: string;
   start: number; // Timestamp
   end: number; // Timestamp
-  dismissed: boolean = false;
+  dismissed: boolean;
 
-  constructor(name: string, start: number, interval: number) {
+  constructor(
+    id: string, name: string, start: number, interval: number, dismissed: boolean
+  ) {
+    this.id = id;
     this.name = name;
     this.start = start;
     this.end = this.start + interval;
+    this.dismissed = dismissed;
   }
 
   static fromStorage(timer: any) {
-    return new Timer(timer.name, timer.start, timer.end - timer.start);
+    return new Timer(
+      timer.id, timer.name, timer.start, timer.end - timer.start, timer.dismissed
+    );
   }
 
   get interval() {
@@ -31,18 +38,23 @@ export class Timer {
     return ((currentTime - this.start) / this.interval) * 100
   }
 
-  toJSON() {
-    return JSON.stringify({
+  toObject() {
+    return {
+      id: this.id,
       name: this.name,
       start: this.start,
       end: this.end,
       dismissed: this.dismissed,
-    });
+    }
+  }
+
+  toJSON() {
+    return JSON.stringify(this.toObject());
   }
 }
 
 export type TimersManager = {
-  timers: Map<string, Timer>,
+  timers: Array<Timer>,
   currentTime: number,
   addTimer: (name: string, interval: number) => void,
   deleteTimer: (id: string) => void,
@@ -51,7 +63,7 @@ export type TimersManager = {
 };
 
 const STORAGE_KEY = "ARKHEIM_TIMER__TIMERS__STORAGE_KEY";
-const INITIAL_VALUE = {};
+const INITIAL_VALUE = Array<Timer>();
 
 const storageHook = createChromeStorageStateHookSync(
   STORAGE_KEY, INITIAL_VALUE
@@ -61,53 +73,65 @@ function useTimersManager(): TimersManager{
   const currentTime = useCurrentTime(100);
   const [storageObj, setStorageObj, , ] = storageHook();
 
-  const timersMap = useMemo(() => {
-    return new Map<string, Timer>(Object.entries(storageObj));
-  }, [storageObj]);
-
-  useEffect(() => {
-    setStorageObj(Object.fromEntries(timersMap.entries()));
-  }, [timersMap, setStorageObj]);
+  const timerArray = storageObj.map((t) => Timer.fromStorage(t));
 
   useEffect(() => {
     // Whenever the map or time changes, check the active timers we have
-    const activeTimers = [...timersMap.values()].reduce((acc, timer) => {
+    const activeTimers = timerArray.reduce((acc, timer) => {
       const remaining = timer.remainingSeconds(currentTime);
       return (remaining <= 0 && !timer.dismissed) ? ++acc : acc;
-      }, 0);
+    }, 0);
     chrome.action.setBadgeText({text: activeTimers.toString()});
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timersMap, currentTime]);
+  }, [currentTime]);
 
   const addTimer = (name: string, interval: number) => {
-    const id = uuid()
-    const timer = new Timer(name, currentTime, interval)
-    timersMap.set(id, timer);
+    const timer = new Timer(uuid(), name, currentTime, interval, false);
+    console.log(
+      "[useTimersManager] ADDING TIMER",
+      timerArray, { name, interval, id: timer.id }
+    );
+    setStorageObj([...timerArray, timer]);
     // Add it to chrome alarms
-    chrome.alarms.create(id, {when: timer.end});
+    chrome.alarms.create(timer.id, {when: timer.end});
   };
 
   const dismissTimer = (id: string) => {
-    const timer = timersMap.get(id);
-    if (!timer) return;
-    timer.dismissed = true;
+    console.log(
+      "[useTimersManager] DISMISSING TIMER",
+      timerArray, { id }
+    );
+    const newArray = timerArray.map((t) => {
+      if (t.id !== id) return t;
+      const newTimer = Timer.fromStorage(t.toObject());
+      newTimer.dismissed = true;
+      return newTimer;
+    });
+    setStorageObj(newArray);
     // Turn it off on chrome alarms
     chrome.alarms.clear(id);
   };
 
   const deleteTimer = (id: string) => {
-    timersMap.delete(id);
+    console.log(
+      "[useTimersManager] DELETING TIMER",
+      timerArray, { id }
+    );
+    const newArray = timerArray.filter((t) => t.id !== id);
+    setStorageObj(newArray)
     // Turn it off on chrome alarms
     chrome.alarms.clear(id);
   };
 
   const clearTimers = () => {
-    timersMap.clear();
+    console.log("[useTimersManager] CLEARING ALL", timerArray);
+    setStorageObj(new Array<Timer>());
+    // Clear chrome alarms
     chrome.alarms.clearAll();
   };
 
   return {
-    timers: timersMap,
+    timers: timerArray,
     currentTime,
     addTimer,
     deleteTimer,

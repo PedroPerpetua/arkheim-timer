@@ -23,17 +23,19 @@ function Panel() {
       <button onClick={timersManager.clearTimers}>Clear</button>
       <p>Current Time: {timersManager.currentTime}</p>
       <AddTimer handleFinish={handleAddTimer}/>
-      {[...timersManager.timers.entries()]
-        .sort(([, t1], [, t2]) => t1.end - t2.end)
-        .map(([id, timer], i) =>
+      {
+        [...timersManager.timers]
+        .sort((t1, t2) => t1.end - t2.end)
+        .map((timer, i) =>
           <Timer
-            timerId={id} key={i}
+            key={i}
             timer={timer}
             currentTime={timersManager.currentTime}
-            onDelete={() => handleDelete(id)}
-            onDismiss={() => handleDismiss(id)}
+            onDelete={handleDelete}
+            onDismiss={handleDismiss}
           />
-      )}
+        )
+      }
     </div>
   );
 }

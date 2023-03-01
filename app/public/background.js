@@ -22,6 +22,12 @@ async function createOffscreen() {
 
 // Add a listener for when alarms time out
 chrome.alarms.onAlarm.addListener(async (alarm) => {
-  console.log("TRIGGERED", alarm.name);
+  console.log("[BACKGROUND] TRIGGERED", alarm.name);
   playSound("beep.mp3", 1)
+  // Increase the badge in case the popup is closed
+  // If the popup is open it'll automatically re-adjust to the correct value
+  chrome.action.getBadgeText({}).then((t) => {
+    const count = Number(t);
+    chrome.action.setBadgeText({text: (count+1).toString()});
+  });
 });

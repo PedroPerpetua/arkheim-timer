@@ -54,14 +54,13 @@ function CountdownSpinner({ remaining, value }: CountdownSpinnerProps) {
 }
 
 type TimerProps = {
-  timerId: string
   timer: TimerType,
   currentTime: number,
-  onDelete: () => void,
-  onDismiss: () => void,
+  onDelete: (id: string) => void,
+  onDismiss: (id: string) => void,
 };
 
-function Timer({ timerId, timer, currentTime, onDelete, onDismiss }: TimerProps) {
+function Timer({ timer, currentTime, onDelete, onDismiss }: TimerProps) {
   const remaining = timer.remainingSeconds(currentTime);
   const percentage = timer.percentageDone(currentTime);
 
@@ -77,13 +76,13 @@ function Timer({ timerId, timer, currentTime, onDelete, onDismiss }: TimerProps)
               color="text.secondary"
               gutterBottom
             >
-              {timerId}
+              {timer.id}
             </Typography>
           </Grid>
           <Grid item xs={1}>
             <Tooltip title="Dismiss">
               <IconButton
-                onClick={onDismiss}
+                onClick={() => onDismiss(timer.id)}
                 size="small"
               >
                 <SnoozeIcon />
@@ -93,7 +92,7 @@ function Timer({ timerId, timer, currentTime, onDelete, onDismiss }: TimerProps)
           <Grid item xs={1}>
             <Tooltip title="Delete">
               <IconButton
-                onClick={onDelete}
+                onClick={() => onDelete(timer.id)}
                 size="small" color="error"
               >
                 <DeleteIcon />
