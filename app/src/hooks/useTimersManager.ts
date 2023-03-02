@@ -3,6 +3,9 @@ import useCurrentTime from './useCurrentTime';
 import { v4 as uuid } from 'uuid';
 import { useEffect } from 'react';
 
+const STORAGE_KEY = "ARKHEIM_TIMER__TIMERS__STORAGE_KEY";
+const ALARM_KEY = "ARKHEIM_TIMER";
+
 export class Timer {
   id: string;
   name: string;
@@ -62,7 +65,6 @@ export type TimersManager = {
   clearTimers: () => void,
 };
 
-const STORAGE_KEY = "ARKHEIM_TIMER__TIMERS__STORAGE_KEY";
 const INITIAL_VALUE = Array<Timer>();
 
 const storageHook = createChromeStorageStateHookSync(
@@ -74,6 +76,10 @@ function useTimersManager(): TimersManager{
   const [storageObj, setStorageObj, , ] = storageHook();
 
   const timerArray = storageObj.map((t) => Timer.fromStorage(t));
+
+  const encode = async (data: string) => {
+    return ALARM_KEY + ";" + data
+  }
 
   useEffect(() => {
     // Whenever the map or time changes, check the active timers we have
@@ -93,7 +99,7 @@ function useTimersManager(): TimersManager{
     );
     setStorageObj([...timerArray, timer]);
     // Add it to chrome alarms
-    chrome.alarms.create(timer.id, {when: timer.end});
+    encode(timer.id).then((code) => chrome.alarms.create(code, {when: timer.end}));
   };
 
   const dismissTimer = (id: string) => {
@@ -109,7 +115,7 @@ function useTimersManager(): TimersManager{
     });
     setStorageObj(newArray);
     // Turn it off on chrome alarms
-    chrome.alarms.clear(id);
+    encode(id).then((code) => chrome.alarms.clear(code));
   };
 
   const deleteTimer = (id: string) => {
@@ -120,7 +126,7 @@ function useTimersManager(): TimersManager{
     const newArray = timerArray.filter((t) => t.id !== id);
     setStorageObj(newArray)
     // Turn it off on chrome alarms
-    chrome.alarms.clear(id);
+    encode(id).then((code) => chrome.alarms.clear(code));
   };
 
   const clearTimers = () => {
