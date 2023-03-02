@@ -1,32 +1,39 @@
 import {
-  Card, CardContent, CircularProgress, Typography, Box, Grid, IconButton, Tooltip,
+  Card,
+  CardContent,
+  CircularProgress,
+  Typography,
+  Box,
+  Grid,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SnoozeIcon from '@mui/icons-material/Snooze';
-import { Timer as TimerType } from '../hooks/useTimersManager';
+import { Timer as TimerType } from '../../hooks/useTimersManager';
 
 function formatSeconds(seconds: number) {
   function pad(num: number, size: number) {
     let retval = num.toString();
-    while (retval.length < size) retval = "0" + retval;
+    while (retval.length < size) retval = '0' + retval;
     return retval;
   }
-  const sec = Math.floor(seconds)
+  const sec = Math.floor(seconds);
   if (sec < 60) return sec.toString();
-  if (sec < 60*60) {
+  if (sec < 60 * 60) {
     const m = Math.floor(sec / 60);
-    const s = sec - 60*m;
+    const s = sec - 60 * m;
     return `${pad(m, 2)}:${pad(s, 2)}`;
   }
-  const h = Math.floor(sec / (60*60));
-  const m = Math.floor((sec - 60*60*h) / 60);
-  const s = sec - 60*60*h - 60*m;
+  const h = Math.floor(sec / (60 * 60));
+  const m = Math.floor((sec - 60 * 60 * h) / 60);
+  const s = sec - 60 * 60 * h - 60 * m;
   return `${h}:${pad(m, 2)}:${pad(s, 2)}`;
 }
 
 type CountdownSpinnerProps = {
-  value: number
-  remaining: number,
+  value: number;
+  remaining: number;
 };
 
 function CountdownSpinner({ remaining, value }: CountdownSpinnerProps) {
@@ -54,10 +61,10 @@ function CountdownSpinner({ remaining, value }: CountdownSpinnerProps) {
 }
 
 type TimerProps = {
-  timer: TimerType,
-  currentTime: number,
-  onDelete: (id: string) => void,
-  onDismiss: (id: string) => void,
+  timer: TimerType;
+  currentTime: number;
+  onDelete: (id: string) => void;
+  onDismiss: (id: string) => void;
 };
 
 function Timer({ timer, currentTime, onDelete, onDismiss }: TimerProps) {
@@ -81,10 +88,7 @@ function Timer({ timer, currentTime, onDelete, onDismiss }: TimerProps) {
           </Grid>
           <Grid item xs={1}>
             <Tooltip title="Dismiss">
-              <IconButton
-                onClick={() => onDismiss(timer.id)}
-                size="small"
-              >
+              <IconButton onClick={() => onDismiss(timer.id)} size="small">
                 <SnoozeIcon />
               </IconButton>
             </Tooltip>
@@ -93,7 +97,8 @@ function Timer({ timer, currentTime, onDelete, onDismiss }: TimerProps) {
             <Tooltip title="Delete">
               <IconButton
                 onClick={() => onDelete(timer.id)}
-                size="small" color="error"
+                size="small"
+                color="error"
               >
                 <DeleteIcon />
               </IconButton>
@@ -105,11 +110,11 @@ function Timer({ timer, currentTime, onDelete, onDismiss }: TimerProps) {
             </Typography>
           </Grid>
           <Grid item xs={4}>
-            {
-              finished
-              ? <Typography>Finished!</Typography>
-              : <CountdownSpinner remaining={remaining} value={percentage} />
-            }
+            {finished ? (
+              <Typography>Finished!</Typography>
+            ) : (
+              <CountdownSpinner remaining={remaining} value={percentage} />
+            )}
           </Grid>
         </Grid>
       </CardContent>

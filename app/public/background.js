@@ -14,16 +14,16 @@ async function playSound(source, volume) {
 async function createOffscreen() {
   if (await chrome.offscreen.hasDocument()) return;
   await chrome.offscreen.createDocument({
-      url: "offscreen.html",
-      reasons: ["AUDIO_PLAYBACK"],
-      justification: "Required to play the alarm sound."
+    url: 'offscreen.html',
+    reasons: ['AUDIO_PLAYBACK'],
+    justification: 'Required to play the alarm sound.',
   });
 }
 
 // Adjust badge count
 async function setBadgeCount() {
   // from useTimersManager
-  const STORAGE_KEY = "ARKHEIM_TIMER__TIMERS__STORAGE_KEY";
+  const STORAGE_KEY = 'ARKHEIM_TIMER__TIMERS__STORAGE_KEY';
   const storage = await chrome.storage.sync.get(STORAGE_KEY);
   // The sync.get method returns a "filtered" object with the lookup key
   const storageObj = storage[STORAGE_KEY];
@@ -31,9 +31,9 @@ async function setBadgeCount() {
   let count = 0;
   for (const timer of storageObj) {
     const remaining = timer.end - currentTime;
-    if (remaining < 0 && !timer.dismissed) count +=1;
+    if (remaining < 0 && !timer.dismissed) count += 1;
   }
-  await chrome.action.setBadgeText({text: count.toString()});
+  await chrome.action.setBadgeText({ text: count.toString() });
 }
 
 // On startup, set the right badge count
@@ -43,16 +43,16 @@ chrome.runtime.onStartup.addListener(async () => {
 
 // Add a listener for when alarms time out
 chrome.alarms.onAlarm.addListener(async (alarm) => {
-  console.log("[BACKGROUND] TRIGGERED", alarm.name);
+  console.log('[BACKGROUND] TRIGGERED', alarm.name);
   // from useTimersManager
-  const ALARM_KEY = "ARKHEIM_TIMER";
-  const timerPrefix = alarm.name.split(";")[0];
+  const ALARM_KEY = 'ARKHEIM_TIMER';
+  const timerPrefix = alarm.name.split(';')[0];
   if (timerPrefix !== ALARM_KEY) return;
-  const ALLOWED_GAP = 10000 // 10 seconds
+  const ALLOWED_GAP = 10000; // 10 seconds
   // Check how long it was supposed to play
-  const currentTime =  new Date().getTime();
+  const currentTime = new Date().getTime();
   if (currentTime < alarm.scheduledTime + ALLOWED_GAP) {
-    playSound("beep.mp3", 1);
+    playSound('beep.mp3', 1);
   }
   // Fix the timers badge
   await setBadgeCount();

@@ -1,5 +1,5 @@
 // Listen for messages from the extension
-chrome.runtime.onMessage.addListener(msg => {
+chrome.runtime.onMessage.addListener((msg) => {
   if ('play' in msg) playAudio(msg.play);
 });
 

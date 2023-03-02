@@ -1,21 +1,16 @@
 {
-    "manifest_version": 3,
-    "name": "Arkheim Timers",
-    "description": "Timers to keep track of Arkheim events.",
-    "version": "1.0.0",
-    "action": {
-        "default_title": "Arkheim Timers",
-        "default_icon": "icon.png",
-        "default_popup": "index.html"
-    },
-    "permissions": [
-        "storage",
-        "alarms",
-        "notifications",
-        "offscreen"
-    ],
-    "background": {
-        "service_worker": "background.js",
-        "type": "module"
-    }
+  "manifest_version": 3,
+  "name": "Arkheim Timers",
+  "description": "Timers to keep track of Arkheim events.",
+  "version": "1.0.0",
+  "action": {
+    "default_title": "Arkheim Timers",
+    "default_icon": "icon.png",
+    "default_popup": "index.html"
+  },
+  "permissions": ["storage", "alarms", "notifications", "offscreen"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  }
 }

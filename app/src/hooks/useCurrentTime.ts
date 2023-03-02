@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 
 function getCurrentTime() {
-  return (new Date()).getTime();
+  return new Date().getTime();
 }
-
 
 function useCurrentTime(updateRate = 500) {
   const [currentTime, setCurrentTime] = useState(getCurrentTime());
@@ -11,7 +10,7 @@ function useCurrentTime(updateRate = 500) {
   useEffect(() => {
     const interval = setInterval(
       () => setCurrentTime(getCurrentTime()),
-      updateRate,
+      updateRate
     );
     return () => clearInterval(interval);
   }, [updateRate]);
