@@ -10,7 +10,9 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SnoozeIcon from '@mui/icons-material/Snooze';
-import { Timer as TimerType } from '../../hooks/useTimersManager';
+import useTimersManager, {
+  Timer as TimerType,
+} from '../../hooks/useTimersManager';
 
 function formatSeconds(seconds: number) {
   function pad(num: number, size: number) {
@@ -62,16 +64,22 @@ function CountdownSpinner({ remaining, value }: CountdownSpinnerProps) {
 
 type TimerProps = {
   timer: TimerType;
-  currentTime: number;
-  onDelete: (id: string) => void;
-  onDismiss: (id: string) => void;
 };
 
-function Timer({ timer, currentTime, onDelete, onDismiss }: TimerProps) {
-  const remaining = timer.remainingSeconds(currentTime);
-  const percentage = timer.percentageDone(currentTime);
+function Timer({ timer }: TimerProps) {
+  const timersManager = useTimersManager();
+  const remaining = timer.remainingSeconds(timersManager.currentTime);
+  const percentage = timer.percentageDone(timersManager.currentTime);
 
   const finished = remaining <= 0;
+
+  const handleDismiss = () => {
+    timersManager.dismissTimer(timer.id);
+  };
+
+  const handleDelete = () => {
+    timersManager.deleteTimer(timer.id);
+  };
 
   return (
     <Card>
@@ -88,33 +96,32 @@ function Timer({ timer, currentTime, onDelete, onDismiss }: TimerProps) {
           </Grid>
           <Grid item xs={1}>
             <Tooltip title="Dismiss">
-              <IconButton onClick={() => onDismiss(timer.id)} size="small">
+              <IconButton onClick={handleDismiss} size="small">
                 <SnoozeIcon />
               </IconButton>
             </Tooltip>
           </Grid>
           <Grid item xs={1}>
             <Tooltip title="Delete">
-              <IconButton
-                onClick={() => onDelete(timer.id)}
-                size="small"
-                color="error"
-              >
+              <IconButton onClick={handleDelete} size="small" color="error">
                 <DeleteIcon />
               </IconButton>
             </Tooltip>
           </Grid>
-          <Grid item xs={8}>
+          <Grid item xs={10}>
             <Typography variant="h5" component="div" noWrap>
               {timer.name}
             </Typography>
           </Grid>
-          <Grid item xs={4}>
+          <Grid item xs={2}>
             {finished ? (
               <Typography>Finished!</Typography>
             ) : (
               <CountdownSpinner remaining={remaining} value={percentage} />
             )}
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant="body2">{timer.description}</Typography>
           </Grid>
         </Grid>
       </CardContent>

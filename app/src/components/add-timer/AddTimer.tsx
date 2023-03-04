@@ -8,20 +8,24 @@ import {
   Button,
   Typography,
 } from '@mui/material';
+import useTimersManager from '../../hooks/useTimersManager';
 
-type AddTimerProps = {
-  handleFinish: (name: string, interval: number) => void;
-};
-
-function AddTimer({ handleFinish }: AddTimerProps) {
+function AddTimer() {
+  const timersManager = useTimersManager();
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [hours, setHours] = useState(0);
   const [minutes, setMinutes] = useState(0);
   const [seconds, setSeconds] = useState(0);
 
   const handleSubmit = () => {
-    handleFinish(name, (hours * 60 * 60 + minutes * 60 + seconds) * 1000);
+    timersManager.addTimer(
+      name,
+      description,
+      (hours * 60 * 60 + minutes * 60 + seconds) * 1000
+    );
     setName('');
+    setDescription('');
     setHours(0);
     setMinutes(0);
     setSeconds(0);
@@ -39,6 +43,16 @@ function AddTimer({ handleFinish }: AddTimerProps) {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 fullWidth
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                fullWidth
+                multiline
+                maxRows={4}
               />
             </Grid>
             <Grid item xs={4}>

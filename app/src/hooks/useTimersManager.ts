@@ -6,9 +6,27 @@ import { useEffect } from 'react';
 const STORAGE_KEY = 'ARKHEIM_TIMER__TIMERS__STORAGE_KEY';
 const ALARM_KEY = 'ARKHEIM_TIMER';
 
+/**
+ * Type for the time stored in storage; has the same attributes as a Timer,
+ * but is just a plain object.
+ */
+type StorageTimer = {
+  id: string;
+  name: string;
+  description: string;
+  start: number; // Timestamp
+  end: number; // Timestamp
+  dismissed: boolean;
+};
+
+/**
+ * Timer class to represent timers in the system, with additional convenience
+ * methods and properties.
+ */
 export class Timer {
   id: string;
   name: string;
+  description: string;
   start: number; // Timestamp
   end: number; // Timestamp
   dismissed: boolean;
@@ -16,21 +34,24 @@ export class Timer {
   constructor(
     id: string,
     name: string,
+    description: string,
     start: number,
     interval: number,
     dismissed: boolean
   ) {
     this.id = id;
     this.name = name;
+    this.description = description;
     this.start = start;
     this.end = this.start + interval;
     this.dismissed = dismissed;
   }
 
-  static fromStorage(timer: any) {
+  static fromStorage(timer: StorageTimer) {
     return new Timer(
       timer.id,
       timer.name,
+      timer.description,
       timer.start,
       timer.end - timer.start,
       timer.dismissed
@@ -50,13 +71,8 @@ export class Timer {
   }
 
   toObject() {
-    return {
-      id: this.id,
-      name: this.name,
-      start: this.start,
-      end: this.end,
-      dismissed: this.dismissed,
-    };
+    const { ...object } = this;
+    return object as StorageTimer;
   }
 
   toJSON() {
@@ -64,21 +80,21 @@ export class Timer {
   }
 }
 
-export type TimersManager = {
-  timers: Array<Timer>;
-  currentTime: number;
-  addTimer: (name: string, interval: number) => void;
-  deleteTimer: (id: string) => void;
-  dismissTimer: (id: string) => void;
-  clearTimers: () => void;
-};
-
-const INITIAL_VALUE = Array<Timer>();
+const INITIAL_VALUE = Array<StorageTimer>();
 
 const storageHook = createChromeStorageStateHookSync(
   STORAGE_KEY,
   INITIAL_VALUE
 );
+
+export type TimersManager = {
+  timers: Array<Timer>;
+  currentTime: number;
+  addTimer: (name: string, description: string, interval: number) => void;
+  deleteTimer: (id: string) => void;
+  dismissTimer: (id: string) => void;
+  clearTimers: () => void;
+};
 
 function useTimersManager(): TimersManager {
   const currentTime = useCurrentTime(100);
@@ -91,7 +107,7 @@ function useTimersManager(): TimersManager {
   };
 
   useEffect(() => {
-    // Whenever the map or time changes, check the active timers we have
+    // Whenever the time changes, check the active timers we have
     const activeTimers = timerArray.reduce((acc, timer) => {
       const remaining = timer.remainingSeconds(currentTime);
       return remaining <= 0 && !timer.dismissed ? ++acc : acc;
@@ -100,11 +116,19 @@ function useTimersManager(): TimersManager {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTime]);
 
-  const addTimer = (name: string, interval: number) => {
-    const timer = new Timer(uuid(), name, currentTime, interval, false);
+  const addTimer = (name: string, description: string, interval: number) => {
+    const timer = new Timer(
+      uuid(),
+      name,
+      description,
+      currentTime,
+      interval,
+      false
+    );
     console.log('[useTimersManager] ADDING TIMER', timerArray, {
       name,
       interval,
+      description,
       id: timer.id,
     });
     setStorageObj([...timerArray, timer]);
